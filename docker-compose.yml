@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   inventory:
-    # Change YOUR-USERNAME to your GitHub username (all lowercase)
-    image: ghcr.io/YOUR-USERNAME/fixauto-inventory:latest
+    image: ghcr.io/eugenefix/fixauto-inventory:latest
+    platform: linux/arm64
     container_name: fixauto-inventory
     ports:
       - "5000:5000"
