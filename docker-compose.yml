@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  inventory:
+    # Change YOUR-USERNAME to your GitHub username (all lowercase)
+    image: ghcr.io/YOUR-USERNAME/fixauto-inventory:latest
+    container_name: fixauto-inventory
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/wwwroot/uploads
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+      - DB_PATH=/app/data/inventory.db
+      - UPLOAD_DIR=/app/wwwroot/uploads

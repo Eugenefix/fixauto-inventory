@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Fixauto Decarie Inventory</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f7;color:#222;font-size:14px}
+
+    /* LOGIN */
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a1f5c,#0d3494)}
+    .login-card{background:white;border-radius:14px;padding:36px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+    .login-card h1{font-size:1.2rem;font-weight:700;color:#0d2d7a;margin-bottom:4px}
+    .login-card p{font-size:.82rem;color:#888;margin-bottom:18px}
+    .lang-switch{display:flex;gap:6px;margin-bottom:18px}
+    .lang-btn{flex:1;padding:7px;border:1.5px solid #d0d5e8;border-radius:7px;background:white;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;color:#555}
+    .lang-btn.active{border-color:#0d3494;background:#0d3494;color:white}
+    .lfield{margin-bottom:14px}
+    .lfield label{display:block;font-size:.8rem;font-weight:600;color:#555;margin-bottom:4px}
+    .lfield input{width:100%;border:1px solid #d0d5e8;border-radius:7px;padding:10px 12px;font-size:.95rem;outline:none}
+    .lfield input:focus{border-color:#0d3494}
+    .login-btn{width:100%;padding:11px;background:#0d2d7a;color:white;border:none;border-radius:7px;font-size:1rem;font-weight:700;cursor:pointer}
+    .login-btn:hover{background:#0a1f5c}
+    .login-err{color:#c83232;font-size:.82rem;margin-top:8px;display:none}
+    .login-err.show{display:block}
+
+    /* APP */
+    #app{display:none}
+    header{background:linear-gradient(135deg,#0a1f5c,#0d3494);color:white;padding:12px 20px;
+      display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+    header h1{font-size:1.2rem;font-weight:700;flex:1}
+    .header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .user-badge{background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:.8rem}
+    .nav-btn{padding:5px 11px;border:1.5px solid rgba(255,255,255,.35);border-radius:6px;background:transparent;color:white;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+    .nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.2);border-color:white}
+    .logout-btn{padding:5px 11px;border:1.5px solid rgba(255,100,100,.5);border-radius:6px;background:transparent;color:#ffaaaa;font-size:.78rem;font-weight:600;cursor:pointer}
+    .logout-btn:hover{background:rgba(255,80,80,.2);color:white}
+    .header-lang{display:flex;gap:4px}
+    .hlang{padding:4px 9px;border:1.5px solid rgba(255,255,255,.3);border-radius:5px;background:transparent;color:rgba(255,255,255,.7);font-size:.75rem;font-weight:700;cursor:pointer}
+    .hlang.active{background:rgba(255,255,255,.2);color:white;border-color:white}
+
+    .layout{display:flex;min-height:calc(100vh - 50px)}
+    .sidebar{width:170px;min-width:170px;background:white;border-right:1px solid #e0e4f0;padding:12px 8px;position:sticky;top:50px;height:calc(100vh - 50px);overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+    .sb-title{font-size:.68rem;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.07em;padding:0 6px;margin-bottom:2px}
+    .brand-btn{width:100%;padding:8px 10px;border:none;border-radius:7px;background:#f0f3fb;color:#0d2d7a;font-size:.83rem;font-weight:600;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:all .15s}
+    .brand-btn:hover{background:#dce4f7}
+    .brand-btn.active{background:#0d2d7a;color:white}
+    .bc{font-size:.7rem;opacity:.6;font-weight:400}
+    .sb-div{height:1px;background:#eee;margin:4px 0}
+
+    .main{flex:1;padding:16px;min-width:0}
+    .page{display:none}.page.active{display:block}
+
+    /* BRAND OVERVIEW */
+    .brand-overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .brand-card{background:white;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:pointer;transition:all .2s}
+    .brand-card:hover{box-shadow:0 4px 16px rgba(13,45,122,.2);transform:translateY(-2px)}
+    .brand-card h3{font-size:1.05rem;font-weight:700;color:#0d2d7a;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .brand-total{font-size:.75rem;color:#888;font-weight:400}
+    .group-tags{display:flex;flex-wrap:wrap;gap:6px}
+    .group-tag{background:#f0f3fb;color:#0d2d7a;border-radius:20px;padding:4px 11px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid transparent}
+    .group-tag:hover{background:#0d2d7a;color:white}
+    .group-tag .gtc{font-size:.7rem;opacity:.7;margin-left:4px}
+
+    /* TOOLBAR */
+    .toolbar{background:white;border-radius:10px;padding:11px 13px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.07);margin-bottom:13px}
+    .toolbar select,.toolbar input[type=text]{border:1px solid #d0d5e8;border-radius:6px;padding:6px 10px;font-size:.85rem;outline:none}
+    .toolbar input[type=text]{flex:1;min-width:120px}
+    .toolbar select:focus,.toolbar input:focus{border-color:#0d3494}
+    .tabs{display:flex;gap:4px;flex-wrap:wrap}
+    .tab{padding:5px 12px;border-radius:20px;border:none;font-size:.76rem;font-weight:600;cursor:pointer;background:#eef0f7;color:#555;transition:all .15s}
+    .tab.t-all{background:#0d2d7a;color:white}.tab.t-avail{background:#22a050;color:white}.tab.t-res{background:#d47e10;color:white}.tab.t-used{background:#c83232;color:white}
+
+    .btn{padding:6px 13px;border:none;border-radius:6px;font-size:.83rem;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+    .btn:hover{opacity:.88;transform:translateY(-1px)}
+    .btn-success{background:#22a050;color:white}.btn-warning{background:#d47e10;color:white}.btn-danger{background:#c83232;color:white}.btn-gray{background:#7a8090;color:white}.btn-info{background:#0d3494;color:white}.btn-pdf{background:#a93226;color:white}
+
+    .filter-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+    .fpill{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:600}
+    .fpill-brand{background:#0d2d7a;color:white}.fpill-group{background:#6c3a9a;color:white}
+    .fpill button{background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0 0 0 2px}
+
+    /* TABLE */
+    .table-wrap{background:white;border-radius:10px;overflow:auto;box-shadow:0 2px 6px rgba(0,0,0,.07)}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:#0d2d7a;color:white}
+    thead th{padding:10px 11px;text-align:left;font-size:.8rem;white-space:nowrap}
+    tbody tr{border-bottom:1px solid #eef0f7;transition:background .1s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:#f5f7ff}
+    tbody tr.row-zero{background:#fde8e8!important}
+    tbody tr.row-zero:hover{background:#fbd0d0!important}
+    tbody tr.row-split{background:#fffbe6!important;border-left:3px solid #f0b429}
+    tbody tr.row-split:hover{background:#fff5cc!important}
+    tbody td{padding:8px 11px;font-size:.85rem;vertical-align:middle}
+    .part-thumb{width:44px;height:44px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid #e0e4f0}
+    .part-thumb-empty{width:44px;height:44px;border-radius:6px;background:#f0f3fb;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:1.2rem;border:1px dashed #d0d5e8}
+    .qty-badge{display:inline-block;border-radius:20px;padding:2px 9px;font-weight:700;font-size:.8rem}
+    .qty-ok{background:#e8f0ff;color:#0d2d7a}.qty-zero{background:#c83232;color:white}.qty-low{background:#fff3e0;color:#d47e10}
+    .group-badge{display:inline-block;background:#f0e8ff;color:#6c3a9a;border-radius:4px;padding:1px 7px;font-size:.72rem;font-weight:600}
+    .status-cell{display:flex;flex-direction:column;gap:3px}
+    .sbadges{display:flex;gap:4px;flex-wrap:wrap}
+    .sbadge{display:inline-flex;align-items:center;border-radius:5px;padding:2px 7px;font-size:.73rem;font-weight:700}
+    .sbadge.avail{background:#e6f9ee;color:#1a7a3f}.sbadge.res{background:#fff3e0;color:#a05e08}.sbadge.used{background:#fde8e8;color:#a02020}
+    .res-note-inline{font-size:.72rem;color:#a05e08;font-style:italic}
+    .notes-inline{font-size:.72rem;color:#888;font-style:italic}
+    .split-label{font-size:.7rem;color:#b07d00;font-weight:600;background:#fff3cd;border-radius:4px;padding:1px 6px;display:inline-block;margin-bottom:2px}
+    .act-btn{padding:3px 8px;border:none;border-radius:4px;font-size:.76rem;font-weight:600;cursor:pointer}
+    .act-edit{background:#fff3e0;color:#a05e08}.act-del{background:#fde8e8;color:#a02020}.act-reserve{background:#e8f0ff;color:#0d3494}.act-cart{background:#e6f9ee;color:#1a7a3f}
+    .act-grp{display:flex;gap:4px;flex-wrap:wrap}
+    .empty{text-align:center;padding:40px;color:#aaa}
+    .empty span{font-size:2rem;display:block;margin-bottom:8px}
+    .bottom-bar{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 2px;font-size:.78rem;color:#888;flex-wrap:wrap;gap:6px}
+    .stats{display:flex;gap:10px}
+    .stat{font-weight:700}
+    .stat.avail{color:#22a050}.stat.res{color:#d47e10}.stat.used{color:#c83232}
+
+    /* CART */
+    .cart-table-wrap{background:white;border-radius:10px;overflow:auto;box-shadow:0 2px 6px rgba(0,0,0,.07)}
+    .cart-table{width:100%;border-collapse:collapse}
+    .cart-table thead tr{background:#0d2d7a;color:white}
+    .cart-table thead th{padding:10px 11px;text-align:left;font-size:.8rem;white-space:nowrap}
+    .cart-table tbody tr{border-bottom:1px solid #eef0f7}
+    .cart-table tbody td{padding:9px 11px;font-size:.85rem;vertical-align:middle}
+    .cart-remove{padding:3px 8px;border:none;border-radius:4px;background:#fff3e0;color:#a05e08;font-size:.76rem;font-weight:600;cursor:pointer}
+    .cart-delete{padding:3px 8px;border:none;border-radius:4px;background:#fde8e8;color:#a02020;font-size:.76rem;font-weight:600;cursor:pointer}
+
+    /* HISTORY */
+    .hist-wrap{background:white;border-radius:10px;overflow:auto;box-shadow:0 2px 6px rgba(0,0,0,.07)}
+    .hist-table{width:100%;border-collapse:collapse}
+    .hist-table thead tr{background:#0d2d7a;color:white}
+    .hist-table thead th{padding:10px 12px;text-align:left;font-size:.8rem}
+    .hist-table tbody tr{border-bottom:1px solid #eef0f7}
+    .hist-table tbody td{padding:8px 12px;font-size:.83rem;vertical-align:top}
+    .hbadge{display:inline-block;border-radius:4px;padding:2px 8px;font-size:.73rem;font-weight:700}
+    .hb-Added{background:#e6f9ee;color:#1a7a3f}.hb-Edited{background:#e8f0ff;color:#0d3494}.hb-Deleted{background:#fde8e8;color:#a02020}.hb-Split{background:#fff3cd;color:#b07d00}.hb-other{background:#f0f3fb;color:#555}
+    .user-chip{display:inline-block;background:#f0f3fb;color:#0d2d7a;border-radius:20px;padding:1px 8px;font-size:.72rem;font-weight:600}
+    .del-po{display:inline-block;background:#fff0f0;color:#c83232;border-radius:4px;padding:1px 7px;font-size:.78rem;font-weight:700}
+
+    /* USERS / GROUPS */
+    .users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+    .user-card{background:white;border-radius:10px;padding:14px 16px;box-shadow:0 2px 6px rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .user-info .uname{font-weight:700;font-size:.95rem;color:#0d2d7a}
+    .user-info .urole{font-size:.75rem;color:#888;margin-top:2px}
+    .admin-badge{background:#e8f0ff;color:#0d2d7a;border-radius:4px;padding:1px 7px;font-size:.72rem;font-weight:700}
+    .user-actions{display:flex;gap:6px}
+    .groups-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}
+    .group-card{background:white;border-radius:8px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .group-card span{font-weight:600;color:#6c3a9a;font-size:.9rem}
+
+    /* MODALS */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+    .modal-overlay.open{display:flex}
+    .modal{background:white;border-radius:12px;padding:22px 26px;width:100%;max-width:520px;box-shadow:0 8px 32px rgba(0,0,0,.25);max-height:92vh;overflow-y:auto}
+    .modal h2{margin-bottom:14px;color:#0d2d7a;font-size:1.05rem}
+    .field{margin-bottom:11px}
+    .field label{display:block;font-size:.78rem;color:#555;margin-bottom:3px;font-weight:600}
+    .field input[type=text],.field input[type=number],.field input[type=password],.field select,.field textarea{width:100%;border:1px solid #d0d5e8;border-radius:6px;padding:7px 10px;font-size:.88rem;outline:none;font-family:inherit;background:white}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#0d3494}
+    .field textarea{resize:vertical;min-height:52px}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .img-upload-area{border:2px dashed #d0d5e8;border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:all .15s;position:relative;margin-bottom:11px}
+    .img-upload-area:hover{border-color:#0d3494;background:#f5f7ff}
+    .img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .img-upload-area .upload-hint{font-size:.82rem;color:#888}
+    .img-upload-area .upload-hint span{color:#0d3494;font-weight:600}
+    .img-preview-wrap{position:relative;display:inline-block;margin-top:8px}
+    .img-preview{max-height:120px;max-width:100%;border-radius:6px;border:1px solid #e0e4f0}
+    .img-remove{position:absolute;top:-6px;right:-6px;background:#c83232;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .dup-box{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:none}
+    .dup-box.show{display:block}
+    .dup-title{font-weight:700;color:#b06000;font-size:.88rem;margin-bottom:6px}
+    .dup-info{font-size:.82rem;color:#555;margin-bottom:10px;line-height:1.6}
+    .dup-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .dup-qty-input{width:70px;border:1px solid #d0d5e8;border-radius:6px;padding:5px 8px;font-size:.88rem;outline:none}
+    .status-section{background:#f5f7ff;border-radius:8px;padding:11px 13px;margin-bottom:11px}
+    .sec-title{font-size:.78rem;font-weight:700;color:#444;display:block;margin-bottom:8px}
+    .check-group{display:flex;flex-direction:column;gap:8px}
+    .check-row{display:flex;align-items:center;gap:8px}
+    .check-row input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#0d3494}
+    .check-label{font-weight:600;font-size:.87rem;min-width:85px}
+    .check-label.avail{color:#22a050}.check-label.res{color:#d47e10}.check-label.used{color:#c83232}
+    .check-row input[type=text]{flex:1;border:1px solid #d0d5e8;border-radius:6px;padding:5px 8px;font-size:.83rem;outline:none}
+    .check-row input[type=text]:disabled{background:#f5f5f5;color:#ccc}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+    .split-info{background:#fff8e1;border-radius:8px;padding:10px 13px;margin-bottom:12px;font-size:.83rem;color:#666;line-height:1.7}
+    .split-info strong{color:#b07d00}
+    .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center}
+    .lightbox.open{display:flex}
+    .lightbox img{max-width:90vw;max-height:90vh;border-radius:8px}
+    .lightbox-close{position:fixed;top:20px;right:24px;color:white;font-size:2rem;cursor:pointer}
+    .toast{position:fixed;bottom:18px;right:18px;background:#22a050;color:white;padding:9px 16px;border-radius:8px;font-weight:600;font-size:.85rem;opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s;pointer-events:none;z-index:300}
+    .toast.show{opacity:1;transform:translateY(0)}.toast.err{background:#c83232}
+
+    @media(max-width:680px){
+      .layout{flex-direction:column}
+      .sidebar{width:100%;min-width:0;height:auto;position:static;flex-direction:row;flex-wrap:wrap;padding:8px;border-right:none;border-bottom:1px solid #e0e4f0;gap:5px}
+      .sb-title,.sb-div{display:none}
+      .brand-btn{width:auto;padding:5px 10px}
+      .col-hide{display:none}
+      .main{padding:10px}
+      .field-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <h1>🔧 Fixauto Decarie</h1>
+    <p id="loginSubtitle">Inventory Management System</p>
+    <div class="lang-switch">
+      <button class="lang-btn active" id="loginLangEN" onclick="setLang('en')">🇨🇦 English</button>
+      <button class="lang-btn" id="loginLangFR" onclick="setLang('fr')">🇶🇨 Français</button>
+    </div>
+    <div class="lfield"><label id="lLabelUser">Username</label><input id="lUser" type="text" placeholder="Enter username" autocomplete="username"/></div>
+    <div class="lfield"><label id="lLabelPass">Password</label><input id="lPass" type="password" placeholder="Enter password" autocomplete="current-password"/></div>
+    <button class="login-btn" id="lBtnLogin" onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="loginErr">Invalid username or password.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <span style="font-size:1.3rem">🔧</span>
+    <h1>Fixauto Decarie</h1>
+    <div class="header-right">
+      <span class="user-badge" id="userBadge"></span>
+      <div class="header-lang">
+        <button class="hlang active" id="hLangEN" onclick="setLang('en')">EN</button>
+        <button class="hlang" id="hLangFR" onclick="setLang('fr')">FR</button>
+      </div>
+      <button class="nav-btn active" id="navOverview" onclick="showPage('overview')" data-t="nav_brands">🏠 Brands</button>
+      <button class="nav-btn" id="navInventory" onclick="showPage('inventory')" data-t="nav_parts">📦 All Parts</button>
+      <button class="nav-btn" id="navHistory" onclick="showPage('history')" data-t="nav_history">History</button>
+      <button class="nav-btn" id="navDeleted" onclick="showPage('deleted')" data-t="nav_deleted">🗑 Deleted</button>
+      <button class="nav-btn" id="navCart" onclick="showPage('cart')" data-t="nav_cart">🛒 Cart <span id="cartBadge" style="background:rgba(255,255,255,.3);border-radius:20px;padding:1px 7px;font-size:.75rem;display:none">0</span></button>
+      <button class="nav-btn" id="navUsers" style="display:none" onclick="showPage('users')" data-t="nav_users">Users</button>
+      <button class="logout-btn" onclick="doLogout()" data-t="sign_out">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <div class="sb-title" data-t="brands">Brands</div>
+      <button class="brand-btn active" id="btn-all-brands" onclick="filterBrand(null)" data-t="all_brands">All brands</button>
+      <div class="sb-div"></div>
+      <div id="brandList"></div>
+    </div>
+
+    <div class="main">
+
+      <!-- OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <h2 style="color:#0d2d7a;font-size:1.1rem" data-t="brands_overview">🚗 Brands Overview</h2>
+          <button class="btn btn-success" onclick="showPage('inventory');openModal()" data-t="add_part">➕ Add Part</button>
+        </div>
+        <div class="brand-overview-grid" id="brandOverviewGrid"></div>
+      </div>
+
+      <!-- INVENTORY -->
+      <div class="page" id="page-inventory">
+        <div class="toolbar">
+          <select id="searchField">
+            <option value="BrandName" data-t="brand">Brand</option>
+            <option value="PartName" data-t="part_name">Part Name</option>
+            <option value="Model" data-t="model">Model</option>
+            <option value="PartNumber" data-t="part_number">Part #</option>
+          </select>
+          <input id="searchInput" type="text" placeholder="Search..." oninput="loadParts()"/>
+          <button class="btn btn-gray" onclick="clearSearch()">✕</button>
+          <div class="tabs">
+            <button class="tab t-all" id="tab-all" onclick="setFilter('all')" data-t="all">All</button>
+            <button class="tab" id="tab-avail" onclick="setFilter('available')" data-t="available">✅ Available</button>
+            <button class="tab" id="tab-res" onclick="setFilter('reserved')" data-t="reserved">🔒 Reserved</button>
+            <button class="tab" id="tab-used" onclick="setFilter('used')" data-t="used">❌ Used</button>
+          </div>
+          <button class="btn btn-info" onclick="exportCSV()" data-t="excel">⬇ Excel</button>
+          <button class="btn btn-pdf" onclick="exportPDF()" data-t="pdf">⬇ PDF</button>
+          <button class="btn btn-success" onclick="openModal()" data-t="add_part">➕ Add Part</button>
+        </div>
+        <div class="filter-pills" id="filterPills"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th data-t="img">IMG</th><th>#</th>
+              <th data-t="part_name">Part Name</th>
+              <th class="col-hide" data-t="brand">Brand</th>
+              <th class="col-hide" data-t="model">Model</th>
+              <th class="col-hide" data-t="group">Group</th>
+              <th data-t="part_number">Part #</th>
+              <th data-t="qty">Qty</th>
+              <th class="col-hide" data-t="location">Location</th>
+              <th data-t="status">Status / Notes</th>
+              <th data-t="actions">Actions</th>
+            </tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="bottom-bar">
+          <span id="countLabel"></span>
+          <div class="stats">
+            <span class="stat avail" id="sAvail"></span>
+            <span class="stat res" id="sRes"></span>
+            <span class="stat used" id="sUsed"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="page" id="page-history">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h2 style="color:#0d2d7a;font-size:1rem" data-t="change_history">Change History</h2>
+          <button class="btn btn-gray" onclick="loadHistory()" data-t="refresh">↻ Refresh</button>
+        </div>
+        <div class="hist-wrap">
+          <table class="hist-table">
+            <thead><tr>
+              <th data-t="date_time">Date / Time</th>
+              <th data-t="user">User</th>
+              <th data-t="action">Action</th>
+              <th data-t="detail">Detail</th>
+            </tr></thead>
+            <tbody id="histBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DELETED -->
+      <div class="page" id="page-deleted">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h2 style="color:#c83232;font-size:1rem" data-t="deleted_history">🗑️ Deleted Parts History</h2>
+          <button class="btn btn-gray" onclick="loadDeleted()" data-t="refresh">↻ Refresh</button>
+        </div>
+        <div class="hist-wrap">
+          <table class="hist-table">
+            <thead><tr>
+              <th data-t="date_time">Date</th><th data-t="deleted_by">Deleted By</th>
+              <th data-t="po">PO #</th><th data-t="part_name">Part Name</th>
+              <th data-t="brand_model">Brand / Model</th><th data-t="part_number">Part #</th>
+              <th data-t="group">Group</th><th data-t="qty">Qty</th><th data-t="location">Location</th>
+            </tr></thead>
+            <tbody id="deletedBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CART -->
+      <div class="page" id="page-cart">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <h2 style="color:#0d2d7a;font-size:1.1rem" data-t="my_cart">🛒 My Cart</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-info" onclick="printCart()" data-t="print_cart">🖨️ Print Cart</button>
+            <button class="btn btn-danger" onclick="deleteAllCartItems()" id="deleteCartBtn" data-t="remove_from_inv">🗑️ Remove from inventory list</button>
+            <button class="btn btn-gray" onclick="clearCart()" data-t="clear_cart">✕ Clear Cart</button>
+          </div>
+        </div>
+        <div id="cartEmpty" style="text-align:center;padding:40px;color:#aaa;display:none">
+          <span style="font-size:2rem;display:block;margin-bottom:8px">🛒</span>
+          <span data-t="cart_empty">Your cart is empty.</span>
+        </div>
+        <div class="cart-table-wrap" id="cartTableWrap" style="display:none">
+          <table class="cart-table">
+            <thead><tr>
+              <th data-t="img">IMG</th><th>#</th>
+              <th data-t="part_name">Part Name</th>
+              <th data-t="brand">Brand</th>
+              <th data-t="model">Model</th>
+              <th data-t="group">Group</th>
+              <th data-t="part_number">Part #</th>
+              <th data-t="qty_in_cart">Qty in Cart</th>
+              <th data-t="stock">Stock</th>
+              <th data-t="location">Location</th>
+              <th data-t="actions">Actions</th>
+            </tr></thead>
+            <tbody id="cartBody"></tbody>
+          </table>
+        </div>
+        <div id="cartFooter" style="margin-top:10px;font-size:.82rem;color:#888"></div>
+      </div>
+
+      <!-- USERS + GROUPS -->
+      <div class="page" id="page-users">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h2 style="color:#0d2d7a;font-size:1rem" data-t="user_mgmt">User Management</h2>
+          <button class="btn btn-success" onclick="openUserModal()" data-t="add_user">➕ Add User</button>
+        </div>
+        <div class="users-grid" id="usersGrid"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px">
+          <h2 style="color:#6c3a9a;font-size:1rem" data-t="part_groups">Part Groups</h2>
+          <button class="btn btn-success" style="background:#6c3a9a" onclick="openGroupModal()" data-t="add_group">➕ Add Group</button>
+        </div>
+        <div class="groups-list" id="groupsList"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADD TO CART MODAL -->
+<div class="modal-overlay" id="cartModalOverlay" style="display:none">
+  <div class="modal" style="max-width:400px">
+    <h2 data-t="add_to_cart_title">🛒 Add to Cart</h2>
+    <div id="cartPartInfo" style="font-size:.85rem;color:#555;margin-bottom:14px;padding:12px;background:#f5f7ff;border-radius:8px;line-height:1.8"></div>
+    <div class="field">
+      <label data-t="qty_to_add">Quantity to add to cart</label>
+      <input id="cartQtyInput" type="number" min="1" value="1"/>
+    </div>
+    <div id="cartQtyHint" style="font-size:.78rem;color:#888;margin-top:-6px;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeCartModal()" data-t="cancel">Cancel</button>
+      <button class="btn btn-success" onclick="confirmAddToCart()" data-t="add_to_cart">🛒 Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- PART MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle" data-t="add_part_title">Add New Part</h2>
+    <div class="dup-box" id="dupBox">
+      <div class="dup-title" data-t="dup_warning">⚠️ This part number already exists!</div>
+      <div class="dup-info" id="dupInfo"></div>
+      <div class="dup-actions">
+        <span style="font-size:.82rem;color:#666" data-t="add_qty">Add qty:</span>
+        <input class="dup-qty-input" type="number" id="dupQty" min="1" value="1"/>
+        <button class="btn btn-warning" onclick="addQtyToExisting()" data-t="add_to_existing">➕ Add to existing</button>
+        <button class="btn btn-gray" onclick="dismissDup()" data-t="add_as_new">Add as new</button>
+      </div>
+    </div>
+    <div id="partFormFields">
+      <div class="field-row">
+        <div class="field"><label data-t="brand_req">Brand *</label><input id="fBrand" type="text" placeholder="e.g. Toyota"/></div>
+        <div class="field"><label data-t="model">Model</label><input id="fModel" type="text" placeholder="e.g. Camry 2021"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label data-t="part_name">Part Name</label><input id="fPartName" type="text" placeholder="e.g. Front Bumper"/></div>
+        <div class="field"><label data-t="part_number_req">Part Number *</label><input id="fPartNum" type="text" placeholder="e.g. 52119-0E020" oninput="checkDuplicate(this.value)"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label data-t="group_req">Group *</label><select id="fGroup"><option value="">— Select group —</option></select></div>
+        <div class="field"><label data-t="qty_req">Quantity *</label><input id="fQty" type="number" min="0" value="1"/></div>
+      </div>
+      <div class="field"><label data-t="location_req">Location *</label><input id="fPlace" type="text" placeholder="e.g. Shelf A1"/></div>
+      <div class="field"><label data-t="notes">Notes / Comments</label><textarea id="fNotes" placeholder="Condition, supplier..."></textarea></div>
+      <div class="field"><label data-t="photo">Photo</label></div>
+      <div class="img-upload-area" id="imgUploadArea">
+        <input type="file" id="fImageFile" accept="image/jpeg,image/png,image/webp" onchange="handleImageSelect(event)"/>
+        <div class="upload-hint">📷 <span data-t="click_upload">Click to upload</span><br><span style="font-size:.75rem;color:#aaa">JPG, PNG, WEBP — max 5MB</span></div>
+        <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none">
+          <img id="imgPreview" class="img-preview" src="" alt=""/>
+          <button class="img-remove" onclick="removeImage(event)">×</button>
+        </div>
+      </div>
+      <div class="status-section">
+        <span class="sec-title" data-t="status_any">Status — tick any combination</span>
+        <div class="check-group">
+          <div class="check-row"><input type="checkbox" id="chkAvail" checked/><span class="check-label avail" data-t="available">✅ Available</span></div>
+          <div class="check-row"><input type="checkbox" id="chkRes" onchange="toggleResNote()"/><span class="check-label res" data-t="reserved">🔒 Reserved</span><input type="text" id="fResNote" placeholder="WO# or client" disabled/></div>
+          <div class="check-row"><input type="checkbox" id="chkUsed"/><span class="check-label used" data-t="used">❌ Used</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal()" data-t="cancel">Cancel</button>
+      <button class="btn btn-success" id="saveBtn" onclick="savePart()" data-t="add_part">➕ Add Part</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESERVE-SPLIT MODAL -->
+<div class="modal-overlay" id="splitModalOverlay">
+  <div class="modal" style="max-width:420px">
+    <h2 data-t="reserve_split">🔒 Reserve & Split</h2>
+    <div class="split-info" id="splitInfo"></div>
+    <div class="field"><label data-t="how_many_reserve">How many to reserve?</label><input id="splitQty" type="number" min="1" value="1"/></div>
+    <div class="field"><label data-t="reserved_for">Reserved for (WO# or client)</label><input id="splitNote" type="text" placeholder="e.g. WO#1042"/></div>
+    <div style="font-size:.78rem;color:#888;margin:-4px 0 10px" data-t="split_hint">💡 Reserved qty becomes a new yellow line. Original keeps remaining qty.</div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeSplitModal()" data-t="cancel">Cancel</button>
+      <button class="btn btn-warning" onclick="doReserveSplit()" data-t="reserve_split_btn">🔒 Reserve & Split</button>
+    </div>
+  </div>
+</div>
+
+<!-- PO DELETE MODAL -->
+<div class="modal-overlay" id="poModalOverlay">
+  <div class="modal" style="max-width:440px">
+    <h2 style="color:#c83232" data-t="remove_from_inv_title">🗑️ Remove from Inventory</h2>
+    <div id="poPartInfo" style="font-size:.85rem;color:#555;margin-bottom:14px;padding:12px;background:#f5f7ff;border-radius:8px;line-height:1.8"></div>
+    <div class="field">
+      <label><span data-t="qty_to_remove">Quantity to remove</span> <span id="poQtyMax" style="color:#888;font-weight:400"></span></label>
+      <input id="poQtyInput" type="number" min="1" value="1"/>
+    </div>
+    <div class="field">
+      <label>PO # <span style="color:#c83232">*</span> <span style="font-weight:400;color:#888" data-t="required">required</span></label>
+      <input id="poInput" type="text" placeholder="e.g. PO-2024-0042"/>
+    </div>
+    <div style="font-size:.78rem;color:#888;margin:-6px 0 12px" data-t="cannot_undo">⚠️ Cannot be undone. PO number is required.</div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="document.getElementById('poModalOverlay').classList.remove('open')" data-t="cancel">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()" data-t="remove_btn">🗑️ Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- CART PO MODAL (delete all cart items) -->
+<div class="modal-overlay" id="cartPoModalOverlay">
+  <div class="modal" style="max-width:440px">
+    <h2 style="color:#c83232" data-t="remove_cart_title">🗑️ Remove Cart Items from Inventory</h2>
+    <div style="background:#fff5f5;border:1px solid #fcc;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;color:#a02020" data-t="remove_cart_warning">⚠️ All parts in your cart will be removed from inventory using the quantities you added to cart.</div>
+    <div class="field">
+      <label>PO # <span style="color:#c83232">*</span></label>
+      <input id="cartPoInput" type="text" placeholder="e.g. PO-2024-0042"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="document.getElementById('cartPoModalOverlay').classList.remove('open')" data-t="cancel">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteCart()" data-t="remove_all_btn">🗑️ Remove All from Inventory</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModalOverlay">
+  <div class="modal" style="max-width:360px">
+    <h2 data-t="add_user_title">Add User</h2>
+    <div class="field"><label data-t="username">Username</label><input id="uUsername" type="text" placeholder="e.g. john"/></div>
+    <div class="field"><label data-t="password">Password</label><input id="uPassword" type="password" placeholder="Choose a password"/></div>
+    <div class="check-row" style="margin-bottom:14px"><input type="checkbox" id="uIsAdmin"/><span style="font-size:.88rem;font-weight:600;color:#0d2d7a" data-t="admin_label">Admin (can manage users & groups)</span></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeUserModal()" data-t="cancel">Cancel</button>
+      <button class="btn btn-success" onclick="saveUser()" data-t="create_user">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="pwModalOverlay">
+  <div class="modal" style="max-width:360px">
+    <h2 data-t="change_password">Change Password</h2>
+    <div class="field"><label data-t="new_password">New Password</label><input id="pwInput" type="password" placeholder="New password"/></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="document.getElementById('pwModalOverlay').classList.remove('open')" data-t="cancel">Cancel</button>
+      <button class="btn btn-warning" onclick="savePassword()" data-t="update_password">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- GROUP MODAL -->
+<div class="modal-overlay" id="groupModalOverlay">
+  <div class="modal" style="max-width:360px">
+    <h2 id="groupModalTitle" data-t="add_group_title">Add Group</h2>
+    <div class="field"><label data-t="group_name">Group Name</label><input id="gName" type="text" placeholder="e.g. Hood"/></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeGroupModal()" data-t="cancel">Cancel</button>
+      <button class="btn btn-success" style="background:#6c3a9a" onclick="saveGroup()" data-t="save_group">Save Group</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close" onclick="closeLightbox()">×</span>
+  <img id="lightboxImg" src="" alt=""/>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── TRANSLATIONS ──────────────────────────────────────────────
+const T = {
+  en: {
+    nav_brands:'🏠 Brands', nav_parts:'📦 All Parts', nav_history:'History',
+    nav_deleted:'🗑 Deleted', nav_cart:'🛒 Cart', nav_users:'Users', sign_out:'Sign Out',
+    brands:'Brands', all_brands:'All brands', brands_overview:'🚗 Brands Overview',
+    add_part:'➕ Add Part', add_part_title:'Add New Part', edit_part_title:'Edit Part',
+    brand:'Brand', brand_req:'Brand *', model:'Model', part_name:'Part Name',
+    part_number:'Part #', part_number_req:'Part Number *', group:'Group',
+    qty:'Qty', qty_req:'Quantity *', qty_in_cart:'Qty in Cart', stock:'Stock',
+    location:'Location', location_req:'Location *', status:'Status / Notes',
+    actions:'Actions', img:'IMG', notes:'Notes / Comments', photo:'Photo',
+    available:'✅ Available', reserved:'🔒 Reserved', used:'❌ Used',
+    all:'All', date_time:'Date / Time', user:'User', action:'Action', detail:'Detail',
+    change_history:'Change History', refresh:'↻ Refresh',
+    deleted_history:'🗑️ Deleted Parts History', deleted_by:'Deleted By', po:'PO #',
+    brand_model:'Brand / Model',
+    my_cart:'🛒 My Cart', print_cart:'🖨️ Print Cart',
+    remove_from_inv:'🗑️ Remove from inventory list',
+    clear_cart:'✕ Clear Cart', cart_empty:'Your cart is empty.',
+    user_mgmt:'User Management', add_user:'➕ Add User', add_user_title:'Add User',
+    part_groups:'Part Groups', add_group:'➕ Add Group', add_group_title:'Add Group',
+    username:'Username', password:'Password', new_password:'New Password',
+    admin_label:'Admin (can manage users & groups)', create_user:'Create User',
+    change_password:'Change Password', update_password:'Update Password',
+    group_name:'Group Name', save_group:'Save Group',
+    add_to_cart_title:'🛒 Add to Cart', qty_to_add:'Quantity to add to cart',
+    add_to_cart:'🛒 Add to Cart', cancel:'Cancel',
+    dup_warning:'⚠️ This part number already exists!',
+    add_qty:'Add qty:', add_to_existing:'➕ Add to existing', add_as_new:'Add as new',
+    status_any:'Status — tick any combination',
+    reserve_split:'🔒 Reserve & Split', how_many_reserve:'How many to reserve?',
+    reserved_for:'Reserved for (WO# or client)',
+    split_hint:'💡 Reserved qty becomes a new yellow line. Original keeps remaining qty.',
+    reserve_split_btn:'🔒 Reserve & Split',
+    remove_from_inv_title:'🗑️ Remove from Inventory',
+    qty_to_remove:'Quantity to remove', required:'required',
+    cannot_undo:'⚠️ Cannot be undone. PO number is required.',
+    remove_btn:'🗑️ Remove',
+    remove_cart_title:'🗑️ Remove Cart Items from Inventory',
+    remove_cart_warning:'⚠️ All parts in your cart will be removed from inventory using the quantities you added to cart.',
+    remove_all_btn:'🗑️ Remove All from Inventory',
+    excel:'⬇ Excel', pdf:'⬇ PDF',
+    click_upload:'Click to upload',
+    parts_shown:'part(s) shown', no_history:'No history yet.',
+    no_deleted:'No deleted parts yet.', no_parts:'No parts found.',
+    save_changes:'💾 Save', cart_remove:'✕ Remove', cart_delete:'🗑️ Delete',
+    loginSubtitle:'Inventory Management System', lLabelUser:'Username',
+    lLabelPass:'Password', lBtnLogin:'Sign In', loginErr:'Invalid username or password.',
+    remove_cart_item:'Remove from cart', delete_cart_item:'Delete from inventory',
+    searchPlaceholder:'Search...',
+  },
+  fr: {
+    nav_brands:'🏠 Marques', nav_parts:'📦 Toutes les pièces', nav_history:'Historique',
+    nav_deleted:'🗑 Supprimés', nav_cart:'🛒 Panier', nav_users:'Utilisateurs', sign_out:'Déconnexion',
+    brands:'Marques', all_brands:'Toutes les marques', brands_overview:'🚗 Aperçu des marques',
+    add_part:'➕ Ajouter', add_part_title:'Nouvelle pièce', edit_part_title:'Modifier la pièce',
+    brand:'Marque', brand_req:'Marque *', model:'Modèle', part_name:'Nom de la pièce',
+    part_number:'Pièce #', part_number_req:'Numéro de pièce *', group:'Groupe',
+    qty:'Qté', qty_req:'Quantité *', qty_in_cart:'Qté au panier', stock:'Stock',
+    location:'Emplacement', location_req:'Emplacement *', status:'Statut / Notes',
+    actions:'Actions', img:'IMG', notes:'Notes / Commentaires', photo:'Photo',
+    available:'✅ Disponible', reserved:'🔒 Réservé', used:'❌ Utilisé',
+    all:'Tous', date_time:'Date / Heure', user:'Utilisateur', action:'Action', detail:'Détail',
+    change_history:'Historique des modifications', refresh:'↻ Actualiser',
+    deleted_history:'🗑️ Historique des suppressions', deleted_by:'Supprimé par', po:'Bon de commande #',
+    brand_model:'Marque / Modèle',
+    my_cart:'🛒 Mon panier', print_cart:'🖨️ Imprimer le panier',
+    remove_from_inv:'🗑️ Retirer de la liste d\'inventaire',
+    clear_cart:'✕ Vider le panier', cart_empty:'Votre panier est vide.',
+    user_mgmt:'Gestion des utilisateurs', add_user:'➕ Ajouter un utilisateur', add_user_title:'Ajouter un utilisateur',
+    part_groups:'Groupes de pièces', add_group:'➕ Ajouter un groupe', add_group_title:'Ajouter un groupe',
+    username:'Nom d\'utilisateur', password:'Mot de passe', new_password:'Nouveau mot de passe',
+    admin_label:'Admin (gérer utilisateurs et groupes)', create_user:'Créer l\'utilisateur',
+    change_password:'Changer le mot de passe', update_password:'Mettre à jour',
+    group_name:'Nom du groupe', save_group:'Enregistrer le groupe',
+    add_to_cart_title:'🛒 Ajouter au panier', qty_to_add:'Quantité à ajouter au panier',
+    add_to_cart:'🛒 Ajouter au panier', cancel:'Annuler',
+    dup_warning:'⚠️ Ce numéro de pièce existe déjà!',
+    add_qty:'Ajouter qté:', add_to_existing:'➕ Ajouter à l\'existant', add_as_new:'Ajouter nouveau',
+    status_any:'Statut — cochez toutes les cases applicables',
+    reserve_split:'🔒 Réserver & Diviser', how_many_reserve:'Combien à réserver?',
+    reserved_for:'Réservé pour (BC# ou client)',
+    split_hint:'💡 La qté réservée devient une nouvelle ligne jaune. L\'original garde la qté restante.',
+    reserve_split_btn:'🔒 Réserver & Diviser',
+    remove_from_inv_title:'🗑️ Retirer de l\'inventaire',
+    qty_to_remove:'Quantité à retirer', required:'requis',
+    cannot_undo:'⚠️ Irréversible. Le numéro de bon de commande est obligatoire.',
+    remove_btn:'🗑️ Retirer',
+    remove_cart_title:'🗑️ Retirer les articles du panier de l\'inventaire',
+    remove_cart_warning:'⚠️ Toutes les pièces de votre panier seront retirées de l\'inventaire selon les quantités ajoutées.',
+    remove_all_btn:'🗑️ Tout retirer de l\'inventaire',
+    excel:'⬇ Excel', pdf:'⬇ PDF',
+    click_upload:'Cliquer pour téléverser',
+    parts_shown:'pièce(s) affichée(s)', no_history:'Aucun historique.',
+    no_deleted:'Aucune pièce supprimée.', no_parts:'Aucune pièce trouvée.',
+    save_changes:'💾 Enregistrer', cart_remove:'✕ Retirer', cart_delete:'🗑️ Supprimer',
+    loginSubtitle:'Système de gestion d\'inventaire', lLabelUser:'Nom d\'utilisateur',
+    lLabelPass:'Mot de passe', lBtnLogin:'Connexion', loginErr:'Nom d\'utilisateur ou mot de passe invalide.',
+    remove_cart_item:'Retirer du panier', delete_cart_item:'Supprimer de l\'inventaire',
+    searchPlaceholder:'Rechercher...',
+  }
+};
+
+let lang='en';
+function t(key){return T[lang][key]||T['en'][key]||key;}
+function setLang(l){
+  lang=l;
+  localStorage.setItem('fdLang',l);
+  // Login screen
+  ['loginLangEN','loginLangFR'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  document.getElementById(l==='en'?'loginLangEN':'loginLangFR')?.classList.add('active');
+  ['hLangEN','hLangFR'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  document.getElementById(l==='en'?'hLangEN':'hLangFR')?.classList.add('active');
+  // Update all data-t elements
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const key=el.getAttribute('data-t');
+    const val=t(key);
+    if(el.tagName==='INPUT'&&el.type==='text') el.placeholder=val;
+    else if(el.id==='searchInput') el.placeholder=t('searchPlaceholder');
+    else el.textContent=val;
+  });
+  // Update cart badge visibility
+  document.getElementById('lLabelUser').textContent=t('lLabelUser');
+  document.getElementById('lLabelPass').textContent=t('lLabelPass');
+  document.getElementById('lBtnLogin').textContent=t('lBtnLogin');
+  document.getElementById('loginSubtitle').textContent=t('loginSubtitle');
+  document.getElementById('loginErr').textContent=t('loginErr');
+  document.getElementById('searchInput').placeholder=t('searchPlaceholder');
+}
+
+// ── STATE ─────────────────────────────────────────────────────
+let editingId=null,activeFilter='all',activeBrand=null,activeGroupId=null;
+let currentUser=null,pwTargetId=null,splitTargetId=null,splitMaxQty=0;
+let dupExistingId=null,dupCheckTimer=null,editingGroupId=null;
+let pendingImageFile=null,existingImageFile='';
+let groups=[];
+let cartItems=[];
+let pendingDeleteId=null;
+let cartAddPartId=null,cartAddMaxQty=0;
+
+// ── AUTH ──────────────────────────────────────────────────────
+async function doLogin(){
+  const u=document.getElementById('lUser').value.trim(),p=document.getElementById('lPass').value;
+  if(!u||!p){document.getElementById('loginErr').classList.add('show');return;}
+  const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+  if(res.ok){currentUser=await res.json();initApp();}
+  else{document.getElementById('loginErr').classList.add('show');}
+}
+async function doLogout(){await fetch('/api/logout',{method:'POST'});currentUser=null;document.getElementById('app').style.display='none';document.getElementById('loginScreen').style.display='flex';document.getElementById('lUser').value='';document.getElementById('lPass').value='';document.getElementById('loginErr').classList.remove('show');}
+function initApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('userBadge').textContent='👤 '+currentUser.username;
+  if(currentUser.isAdmin) document.getElementById('navUsers').style.display='';
+  loadGroups();loadBrands();loadOverview();loadCart();
+}
+['lUser','lPass'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+fetch('/api/me').then(async r=>{if(r.ok){currentUser=await r.json();initApp();}});
+
+// ── PAGE NAV ──────────────────────────────────────────────────
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav'+name[0].toUpperCase()+name.slice(1)).classList.add('active');
+  if(name==='inventory') loadParts();
+  if(name==='history') loadHistory();
+  if(name==='users'){loadUsers();loadGroupsList();}
+  if(name==='overview') loadOverview();
+  if(name==='cart') loadCart();
+  if(name==='deleted') loadDeleted();
+}
+
+// ── GROUPS ────────────────────────────────────────────────────
+async function loadGroups(){
+  groups=await (await fetch('/api/groups')).json();
+  const sel=document.getElementById('fGroup');
+  sel.innerHTML=`<option value="">— ${t('group')} —</option>`;
+  groups.forEach(g=>sel.innerHTML+=`<option value="${g.id}">${esc2(g.name)}</option>`);
+}
+async function loadGroupsList(){
+  const data=await (await fetch('/api/groups')).json();
+  document.getElementById('groupsList').innerHTML=data.map(g=>`
+    <div class="group-card">
+      <span>📦 ${esc2(g.name)}</span>
+      <div style="display:flex;gap:5px">
+        <button class="act-btn act-edit" onclick="openGroupModal(${g.id},'${esc(g.name)}')">✏️</button>
+        <button class="act-btn act-del" onclick="deleteGroup(${g.id},'${esc(g.name)}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+function openGroupModal(id=null,name=''){editingGroupId=id;document.getElementById('groupModalTitle').textContent=id?t('save_group'):t('add_group_title');document.getElementById('gName').value=name;document.getElementById('groupModalOverlay').classList.add('open');document.getElementById('gName').focus();}
+function closeGroupModal(){document.getElementById('groupModalOverlay').classList.remove('open');editingGroupId=null;}
+async function saveGroup(){
+  const name=document.getElementById('gName').value.trim();
+  if(!name){showToast(t('group_name')+' required',true);return;}
+  const url=editingGroupId?`/api/groups/${editingGroupId}`:'/api/groups';
+  const res=await fetch(url,{method:editingGroupId?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+  if(res.ok){closeGroupModal();await loadGroups();loadGroupsList();showToast(editingGroupId?t('save_group')+'!':t('add_group')+'!');}
+  else showToast('Group name already exists.',true);
+}
+async function deleteGroup(id,name){
+  if(!confirm(`Delete group "${name}"?`))return;
+  if((await fetch(`/api/groups/${id}`,{method:'DELETE'})).ok){await loadGroups();loadGroupsList();}
+}
+
+// ── BRAND OVERVIEW ────────────────────────────────────────────
+async function loadOverview(){
+  const data=await (await fetch('/api/brands/summary')).json();
+  const grid=document.getElementById('brandOverviewGrid');
+  const brands=Object.keys(data).sort();
+  if(!brands.length){grid.innerHTML=`<div style="color:#aaa;grid-column:1/-1;text-align:center;padding:40px">${t('no_parts')}</div>`;return;}
+  grid.innerHTML=brands.map(brand=>{
+    const gs=data[brand];
+    const total=gs.reduce((s,g)=>s+g.count,0);
+    const tags=gs.map(g=>`<span class="group-tag" onclick="event.stopPropagation();goToBrandGroup('${esc(brand)}',${g.groupId||'null'},'${esc2(g.groupName)}')">${esc2(g.groupName)}<span class="gtc">${g.count}</span></span>`).join('');
+    return `<div class="brand-card" onclick="goToBrand('${esc(brand)}')">
+      <h3>🚗 ${esc2(brand)} <span class="brand-total">${total} ${t('parts_shown').split('(')[0]}</span></h3>
+      <div class="group-tags">${tags}</div>
+    </div>`;
+  }).join('');
+}
+function goToBrand(brand){activeBrand=brand;activeGroupId=null;showPage('inventory');}
+function goToBrandGroup(brand,groupId,groupName){activeBrand=brand;activeGroupId=groupId;showPage('inventory');}
+
+// ── SIDEBAR ───────────────────────────────────────────────────
+async function loadBrands(){
+  const data=await (await fetch('/api/parts')).json();
+  const counts={};
+  data.forEach(p=>{const b=p.brandName||'—';counts[b]=(counts[b]||0)+1;});
+  const list=document.getElementById('brandList');
+  list.innerHTML='';
+  Object.keys(counts).sort().forEach(brand=>{
+    const btn=document.createElement('button');
+    btn.className='brand-btn'+(activeBrand===brand?' active':'');
+    btn.innerHTML=`<span>${brand}</span><span class="bc">${counts[brand]}</span>`;
+    btn.onclick=()=>filterBrand(brand);
+    list.appendChild(btn);
+  });
+  document.getElementById('btn-all-brands').textContent=t('all_brands');
+  document.getElementById('btn-all-brands').classList.toggle('active',activeBrand===null);
+}
+function filterBrand(brand){activeBrand=brand;activeGroupId=null;loadBrands();showPage('inventory');}
+function setFilter(val){
+  activeFilter=val;
+  document.querySelectorAll('.tab').forEach(t=>t.className='tab');
+  const map={all:'t-all',available:'t-avail',reserved:'t-res',used:'t-used'};
+  const ids={all:'tab-all',available:'tab-avail',reserved:'tab-res',used:'tab-used'};
+  document.getElementById(ids[val]).classList.add(map[val]);
+  loadParts();
+}
+
+// ── LOAD PARTS ────────────────────────────────────────────────
+async function loadParts(){
+  const search=document.getElementById('searchInput').value.trim();
+  const field=document.getElementById('searchField').value;
+  const params=[];
+  if(search){params.push(`search=${encodeURIComponent(search)}`);params.push(`field=${field}`);}
+  if(activeFilter!=='all') params.push(`filter=${activeFilter}`);
+  if(activeBrand) params.push(`brand=${encodeURIComponent(activeBrand)}`);
+  if(activeGroupId!=null) params.push(`groupId=${activeGroupId}`);
+  const data=await (await fetch('/api/parts'+(params.length?'?'+params.join('&'):''))).json();
+  renderTable(data); updateFilterPills();
+}
+
+function updateFilterPills(){
+  const pills=document.getElementById('filterPills');
+  let html='';
+  if(activeBrand) html+=`<span class="fpill fpill-brand">🚗 ${esc2(activeBrand)}<button onclick="clearBrandFilter()">✕</button></span>`;
+  if(activeGroupId!=null){const g=groups.find(x=>x.id===activeGroupId);html+=`<span class="fpill fpill-group">📦 ${g?esc2(g.name):'Group'}<button onclick="clearGroupFilter()">✕</button></span>`;}
+  pills.innerHTML=html;
+}
+function clearBrandFilter(){activeBrand=null;activeGroupId=null;loadBrands();loadParts();}
+function clearGroupFilter(){activeGroupId=null;loadParts();}
+
+function renderTable(parts){
+  const tbody=document.getElementById('tableBody');
+  document.getElementById('countLabel').textContent=`${parts.length} ${t('parts_shown')}`;
+  document.getElementById('sAvail').textContent=`✅ ${parts.filter(p=>p.isAvailable).length} ${t('available').replace('✅ ','')}`;
+  document.getElementById('sRes').textContent=`🔒 ${parts.filter(p=>p.isReserved).length} ${t('reserved').replace('🔒 ','')}`;
+  document.getElementById('sUsed').textContent=`❌ ${parts.filter(p=>p.isUsed).length} ${t('used').replace('❌ ','')}`;
+  if(!parts.length){tbody.innerHTML=`<tr><td colspan="11"><div class="empty"><span>📦</span>${t('no_parts')}</div></td></tr>`;return;}
+  tbody.innerHTML=parts.map((p,i)=>{
+    const isSplit=p.parentId!=null;
+    const qClass=p.quantity===0?'qty-zero':p.quantity===1?'qty-low':'qty-ok';
+    const qLabel=p.quantity===0?'⚠ 0':p.quantity;
+    const badges=[];
+    if(p.isAvailable) badges.push(`<span class="sbadge avail">${t('available')}</span>`);
+    if(p.isReserved)  badges.push(`<span class="sbadge res">${t('reserved')}</span>`);
+    if(p.isUsed)      badges.push(`<span class="sbadge used">${t('used')}</span>`);
+    if(!badges.length) badges.push(`<span style="color:#ccc;font-size:.75rem">—</span>`);
+    const resHtml=(p.isReserved&&p.reservedNote)?`<div class="res-note-inline">📋 ${esc2(p.reservedNote)}</div>`:'';
+    const noteHtml=p.notes?`<div class="notes-inline">💬 ${esc2(p.notes)}</div>`:'';
+    const splitHtml=isSplit?`<div class="split-label">↳ split #${p.parentId}</div>`:'';
+    const groupHtml=p.groupName?`<span class="group-badge">${esc2(p.groupName)}</span>`:'—';
+    const imgHtml=p.imageFile?`<img class="part-thumb" src="/uploads/${esc2(p.imageFile)}" onclick="openLightbox('/uploads/${esc2(p.imageFile)}')" alt=""/>`:
+      `<div class="part-thumb-empty">📷</div>`;
+    const reserveBtn=(!isSplit&&p.quantity>1)?`<button class="act-btn act-reserve" onclick="openSplitModal(${p.id},${p.quantity},'${esc(p.partName||'')}','${esc(p.brandName)}','${esc(p.partNumber||'')}')">🔒</button>`:'';
+    const rn=esc(p.reservedNote||'');
+    const rowCls=p.quantity===0?'row-zero':isSplit?'row-split':'';
+    return `<tr class="${rowCls}">
+      <td>${imgHtml}</td><td>${i+1}</td>
+      <td><strong>${esc2(p.partName)||'<span style="color:#ccc">—</span>'}</strong></td>
+      <td class="col-hide">${esc2(p.brandName)}</td>
+      <td class="col-hide">${esc2(p.model)||'—'}</td>
+      <td class="col-hide">${groupHtml}</td>
+      <td>${esc2(p.partNumber||'')}</td>
+      <td><span class="qty-badge ${qClass}">${qLabel}</span></td>
+      <td class="col-hide">${esc2(p.place)}</td>
+      <td><div class="status-cell">${splitHtml}<div class="sbadges">${badges.join('')}</div>${resHtml}${noteHtml}</div></td>
+      <td><div class="act-grp">
+        ${reserveBtn}
+        <button class="act-btn act-cart" onclick="openAddToCart(${p.id},${p.quantity},'${esc(p.brandName)}','${esc(p.partName||'')}','${esc(p.partNumber||'')}');">🛒</button>
+        <button class="act-btn act-edit" onclick="editPart(${p.id},'${esc(p.partName||'')}','${esc(p.brandName)}','${esc(p.model||'')}','${esc(p.partNumber||'')}',${p.quantity},'${esc(p.place)}',${p.isAvailable},${p.isReserved},${p.isUsed},'${rn}','${esc(p.notes||'')}',${p.groupId||'null'},'${esc(p.imageFile||'')}')">✏️</button>
+        <button class="act-btn act-del" onclick="deletePart(${p.id},'${esc(p.brandName)}','${esc(p.partName||'')}','${esc(p.model||'')}','${esc(p.partNumber||'')}',${p.quantity})">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc2(s){return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function clearSearch(){document.getElementById('searchInput').value='';loadParts();}
+function toggleResNote(){document.getElementById('fResNote').disabled=!document.getElementById('chkRes').checked;}
+
+// ── IMAGE ─────────────────────────────────────────────────────
+function handleImageSelect(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>5*1024*1024){showToast('Image must be under 5MB.',true);return;}
+  pendingImageFile=file;
+  const reader=new FileReader();
+  reader.onload=ev=>{document.getElementById('imgPreview').src=ev.target.result;document.getElementById('imgPreviewWrap').style.display='inline-block';};
+  reader.readAsDataURL(file);
+}
+function removeImage(e){e.stopPropagation();pendingImageFile=null;existingImageFile='';document.getElementById('fImageFile').value='';document.getElementById('imgPreviewWrap').style.display='none';document.getElementById('imgPreview').src='';}
+async function uploadPendingImage(){
+  if(!pendingImageFile) return existingImageFile;
+  const fd=new FormData();fd.append('image',pendingImageFile);
+  const res=await fetch('/api/upload-image',{method:'POST',body:fd});
+  if(!res.ok){showToast('Image upload failed.',true);return existingImageFile;}
+  return (await res.json()).fileName;
+}
+function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+
+// ── DUPLICATE CHECK ───────────────────────────────────────────
+function checkDuplicate(val){
+  clearTimeout(dupCheckTimer);if(editingId)return;
+  dupExistingId=null;document.getElementById('dupBox').classList.remove('show');
+  if(!val||val.length<3)return;
+  dupCheckTimer=setTimeout(async()=>{
+    const res=await fetch(`/api/parts/check-spare/${encodeURIComponent(val.trim())}`);
+    const data=await res.json();
+    if(data.exists){
+      dupExistingId=data.id;
+      document.getElementById('dupInfo').innerHTML=`<strong>${esc2(data.brandName)} ${esc2(data.model)} — ${esc2(data.partName)}</strong><br>${t('part_number')}: ${esc2(data.partNumber)} &nbsp;|&nbsp; ${t('qty')}: <strong>${data.quantity}</strong> &nbsp;|&nbsp; ${t('location')}: ${esc2(data.place)}`;
+      document.getElementById('dupQty').value=1;
+      document.getElementById('dupBox').classList.add('show');
+    }
+  },500);
+}
+async function addQtyToExisting(){
+  const qty=parseInt(document.getElementById('dupQty').value);
+  if(!dupExistingId||isNaN(qty)||qty<1){showToast('Enter valid quantity.',true);return;}
+  const res=await fetch(`/api/parts/${dupExistingId}/add-quantity`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantity:qty})});
+  if(res.ok){closeModal();await loadBrands();loadParts();loadOverview();showToast(`+${qty} added!`);}
+  else showToast('Error.',true);
+}
+function dismissDup(){dupExistingId=null;document.getElementById('dupBox').classList.remove('show');}
+
+// ── PART MODAL ────────────────────────────────────────────────
+function openModal(){
+  editingId=null;dupExistingId=null;pendingImageFile=null;existingImageFile='';
+  document.getElementById('modalTitle').textContent=t('add_part_title');
+  document.getElementById('saveBtn').textContent=t('add_part');
+  ['fPartName','fBrand','fModel','fPartNum','fPlace','fNotes','fResNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fBrand').value=activeBrand||'';
+  document.getElementById('fQty').value=1;document.getElementById('fGroup').value='';
+  document.getElementById('chkAvail').checked=true;document.getElementById('chkRes').checked=false;document.getElementById('chkUsed').checked=false;
+  document.getElementById('fResNote').disabled=true;document.getElementById('dupBox').classList.remove('show');
+  document.getElementById('fImageFile').value='';document.getElementById('imgPreviewWrap').style.display='none';
+  document.getElementById('modalOverlay').classList.add('open');document.getElementById('fBrand').focus();
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');editingId=null;dupExistingId=null;}
+function editPart(id,partName,brand,model,partNum,qty,place,isAvail,isRes,isUsed,resNote,notes,groupId,imageFile){
+  editingId=id;dupExistingId=null;pendingImageFile=null;existingImageFile=imageFile||'';
+  document.getElementById('modalTitle').textContent=t('edit_part_title');
+  document.getElementById('saveBtn').textContent=t('save_changes');
+  document.getElementById('fPartName').value=partName;document.getElementById('fBrand').value=brand;
+  document.getElementById('fModel').value=model;document.getElementById('fPartNum').value=partNum;
+  document.getElementById('fQty').value=qty;document.getElementById('fPlace').value=place;
+  document.getElementById('fNotes').value=notes;document.getElementById('fGroup').value=groupId||'';
+  document.getElementById('chkAvail').checked=isAvail;document.getElementById('chkRes').checked=isRes;
+  document.getElementById('chkUsed').checked=isUsed;document.getElementById('fResNote').value=resNote;
+  document.getElementById('fResNote').disabled=!isRes;document.getElementById('dupBox').classList.remove('show');
+  document.getElementById('fImageFile').value='';
+  if(imageFile){document.getElementById('imgPreview').src='/uploads/'+imageFile;document.getElementById('imgPreviewWrap').style.display='inline-block';}
+  else document.getElementById('imgPreviewWrap').style.display='none';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+async function savePart(){
+  const brand=document.getElementById('fBrand').value.trim();
+  const partNum=document.getElementById('fPartNum').value.trim();
+  const qty=parseInt(document.getElementById('fQty').value);
+  const place=document.getElementById('fPlace').value.trim();
+  const gid=document.getElementById('fGroup').value;
+  if(!brand||!partNum||!place||isNaN(qty)){showToast(t('required')+': '+t('brand_req')+', '+t('part_number_req')+', '+t('location_req')+', '+t('qty_req'),true);return;}
+  if(!gid){showToast(t('group')+' '+t('required'),true);document.getElementById('fGroup').focus();return;}
+  const imageFile=await uploadPendingImage();
+  const body=JSON.stringify({
+    partName:document.getElementById('fPartName').value.trim(),brandName:brand,
+    model:document.getElementById('fModel').value.trim(),partNumber:partNum,
+    groupId:gid?parseInt(gid):null,quantity:qty,place,
+    isAvailable:document.getElementById('chkAvail').checked,
+    isReserved:document.getElementById('chkRes').checked,
+    isUsed:document.getElementById('chkUsed').checked,
+    reservedNote:document.getElementById('fResNote').value.trim(),
+    notes:document.getElementById('fNotes').value.trim(),
+    imageFile:imageFile||''
+  });
+  const res=await fetch(editingId?`/api/parts/${editingId}`:'/api/parts',
+    {method:editingId?'PUT':'POST',headers:{'Content-Type':'application/json'},body});
+  if(res.ok){closeModal();await loadBrands();loadParts();loadOverview();showToast(editingId?t('save_changes')+'!':t('add_part')+'!');}
+  else showToast('Error saving.',true);
+}
+
+// ── DELETE WITH PO ────────────────────────────────────────────
+function deletePart(id,brandName,partName,model,partNum,qty){
+  pendingDeleteId=id;
+  document.getElementById('poPartInfo').innerHTML=
+    `<strong>${esc2(brandName)} ${esc2(model)} — ${esc2(partName||'(no name)')}</strong><br>
+     ${t('part_number')}: <strong>${esc2(partNum)}</strong><br>
+     ${t('qty')}: <strong>${qty}</strong>`;
+  document.getElementById('poInput').value='';
+  document.getElementById('poQtyInput').value=qty;
+  document.getElementById('poQtyInput').max=qty;
+  document.getElementById('poQtyMax').textContent=`(max ${qty})`;
+  document.getElementById('poModalOverlay').classList.add('open');
+  document.getElementById('poInput').focus();
+}
+async function confirmDelete(){
+  const po=document.getElementById('poInput').value.trim();
+  const qtyToRemove=parseInt(document.getElementById('poQtyInput').value);
+  const maxQty=parseInt(document.getElementById('poQtyInput').max);
+  if(!po){showToast('PO # '+t('required'),true);document.getElementById('poInput').focus();return;}
+  if(isNaN(qtyToRemove)||qtyToRemove<1){showToast(t('qty')+' required',true);return;}
+  if(qtyToRemove>maxQty){showToast(`Max ${maxQty}`,true);return;}
+  document.getElementById('poModalOverlay').classList.remove('open');
+  if(qtyToRemove<maxQty){
+    const res=await fetch(`/api/parts/${pendingDeleteId}/remove-qty`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantity:qtyToRemove,purchaseOrder:po})});
+    if(res.ok){await loadBrands();loadParts();loadOverview();await loadCart();showToast(`Removed ${qtyToRemove} (PO: ${po})`);}
+    else{const msg=await res.text();showToast(msg||'Error.',true);}
+  } else {
+    const res=await fetch(`/api/parts/${pendingDeleteId}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({purchaseOrder:po,quantity:qtyToRemove})});
+    if(res.ok){await loadBrands();loadParts();loadOverview();await loadCart();showToast(`Part deleted (PO: ${po})`);}
+    else{const msg=await res.text();showToast(msg||'Error.',true);}
+  }
+}
+
+// ── RESERVE-SPLIT ─────────────────────────────────────────────
+function openSplitModal(id,maxQty,partName,brand,partNum){
+  splitTargetId=id;splitMaxQty=maxQty;
+  document.getElementById('splitInfo').innerHTML=`<strong>${esc2(brand)} — ${esc2(partName)}</strong><br>${t('part_number')}: ${esc2(partNum)}<br>${t('qty')}: <strong>${maxQty}</strong>`;
+  document.getElementById('splitQty').max=maxQty-1;document.getElementById('splitQty').value=1;
+  document.getElementById('splitNote').value='';
+  document.getElementById('splitModalOverlay').classList.add('open');document.getElementById('splitNote').focus();
+}
+function closeSplitModal(){document.getElementById('splitModalOverlay').classList.remove('open');}
+async function doReserveSplit(){
+  const qty=parseInt(document.getElementById('splitQty').value);
+  const note=document.getElementById('splitNote').value.trim();
+  if(isNaN(qty)||qty<1||qty>=splitMaxQty){showToast(`${t('qty')} 1–${splitMaxQty-1}`,true);return;}
+  const res=await fetch(`/api/parts/${splitTargetId}/reserve-split`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reserveQty:qty,reservedNote:note})});
+  if(res.ok){closeSplitModal();await loadBrands();loadParts();showToast(`Reserved ${qty}!`);}
+  else showToast((await res.text())||'Error.',true);
+}
+
+// ── CART ──────────────────────────────────────────────────────
+function openAddToCart(partId,maxQty,brand,partName,partNum){
+  try {
+    cartAddPartId=parseInt(partId);
+    cartAddMaxQty=parseInt(maxQty)||1;
+    var infoEl=document.getElementById('cartPartInfo');
+    var qtyEl=document.getElementById('cartQtyInput');
+    var hintEl=document.getElementById('cartQtyHint');
+    var modalEl=document.getElementById('cartModalOverlay');
+    if(!infoEl||!qtyEl||!modalEl){showToast('UI error - please refresh.',true);return;}
+    infoEl.innerHTML=
+      '<strong>'+esc2(brand||'')+'</strong>'+(partName?' — '+esc2(partName):'')+'<br>'+
+      (partNum?t('part_number')+': <strong>'+esc2(partNum)+'</strong><br>':'')+
+      t('stock')+': <strong>'+(maxQty||0)+'</strong>';
+    qtyEl.value=1;
+    qtyEl.max=cartAddMaxQty;
+    if(hintEl) hintEl.textContent='Max: '+cartAddMaxQty;
+    modalEl.style.display='flex';
+    setTimeout(function(){try{qtyEl.focus();}catch(e){}},100);
+  } catch(err) {
+    showToast('Error opening cart: '+err.message, true);
+    console.error('openAddToCart error:', err);
+  }
+}
+function closeCartModal(){
+  document.getElementById('cartModalOverlay').style.display='none';
+}
+
+async function confirmAddToCart(){
+  const qty=parseInt(document.getElementById('cartQtyInput').value);
+  if(isNaN(qty)||qty<1){showToast('Enter a valid quantity.',true);return;}
+  if(qty>cartAddMaxQty){showToast(`Max available: ${cartAddMaxQty}`,true);return;}
+  if(!cartAddPartId){showToast('Error: no part selected.',true);return;}
+  closeCartModal();
+  try {
+    const res=await fetch('/api/cart/'+cartAddPartId,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({quantity:qty})
+    });
+    if(res.ok){
+      await loadCart();
+      showToast('+'+qty+' '+t('add_to_cart')+' ✓');
+    } else {
+      const msg=await res.text();
+      showToast(msg||'Error adding to cart.',true);
+    }
+  } catch(err){
+    showToast('Error: '+err.message,true);
+    console.error('Cart error:',err);
+  }
+}
+
+async function loadCart(){
+  try {
+    const res=await fetch('/api/cart');
+    if(!res.ok){
+      console.error('Cart load error:',res.status);
+      cartItems=[];
+    } else {
+      const data=await res.json();
+      cartItems=Array.isArray(data)?data:[];
+    }
+  } catch(e){
+    console.error('Cart load exception:',e);
+    cartItems=[];
+  }
+  const badge=document.getElementById('cartBadge');
+  if(badge){
+    if(cartItems.length>0){badge.textContent=cartItems.length;badge.style.display='';}
+    else badge.style.display='none';
+  }
+  renderCart();
+}
+
+function renderCart(){
+  const tbody=document.getElementById('cartBody');
+  const empty=document.getElementById('cartEmpty');
+  const wrap=document.getElementById('cartTableWrap');
+  const footer=document.getElementById('cartFooter');
+  const deleteBtn=document.getElementById('deleteCartBtn');
+  if(!cartItems.length){
+    empty.style.display='block';wrap.style.display='none';
+    if(deleteBtn) deleteBtn.style.display='none';
+    footer.textContent='';return;
+  }
+  empty.style.display='none';wrap.style.display='block';
+  if(deleteBtn) deleteBtn.style.display='';
+  footer.textContent=`${cartItems.length} ${t('parts_shown')}`;
+  tbody.innerHTML=cartItems.map((p,i)=>{
+    const imgHtml=p.imageFile?`<img class="part-thumb" src="/uploads/${esc2(p.imageFile)}" onclick="openLightbox('/uploads/${esc2(p.imageFile)}')" alt=""/>`:
+      `<div class="part-thumb-empty">📷</div>`;
+    return `<tr>
+      <td>${imgHtml}</td><td>${i+1}</td>
+      <td><strong>${esc2(p.partName)||'—'}</strong></td>
+      <td>${esc2(p.brandName)}</td>
+      <td>${esc2(p.model)||'—'}</td>
+      <td>${p.groupName?`<span class="group-badge">${esc2(p.groupName)}</span>`:'—'}</td>
+      <td>${esc2(p.partNumber||'')}</td>
+      <td><span class="qty-badge qty-ok">${p.cartQty||1}</span></td>
+      <td><span class="qty-badge qty-ok">${p.quantity}</span></td>
+      <td>${esc2(p.place)}</td>
+      <td><div class="act-grp">
+        <button class="cart-remove" onclick="removeFromCart(${p.cartId})" title="${t('remove_cart_item')}">✕ ${t('cart_remove')}</button>
+        <button class="cart-delete" onclick="deleteCartItem(${p.partId},'${esc(p.brandName)}','${esc(p.partName||'')}','${esc(p.model||'')}','${esc(p.partNumber||'')}',${p.quantity},${p.cartId},${p.cartQty||1})" title="${t('delete_cart_item')}">🗑️ ${t('cart_delete')}</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function removeFromCart(cartId){
+  await fetch(`/api/cart/${cartId}`,{method:'DELETE'});
+  await loadCart();showToast(t('cart_remove')+' ✓');
+}
+
+function deleteCartItem(partId,brandName,partName,model,partNum,qty,cartId,cartQty){
+  pendingDeleteId=partId;
+  // Pre-fill PO modal with cart qty
+  document.getElementById('poPartInfo').innerHTML=
+    `<strong>${esc2(brandName)} ${esc2(model)} — ${esc2(partName||'(no name)')}</strong><br>
+     ${t('part_number')}: <strong>${esc2(partNum)}</strong><br>
+     ${t('qty_in_cart')}: <strong>${cartQty}</strong> / ${t('stock')}: <strong>${qty}</strong>`;
+  document.getElementById('poInput').value='';
+  document.getElementById('poQtyInput').value=cartQty;
+  document.getElementById('poQtyInput').max=qty;
+  document.getElementById('poQtyMax').textContent=`(max ${qty})`;
+  // After delete, also remove from cart
+  pendingCartIdToRemove=cartId;
+  document.getElementById('poModalOverlay').classList.add('open');
+  document.getElementById('poInput').focus();
+}
+
+let pendingCartIdToRemove=null;
+// Override confirmDelete to also remove from cart if triggered from cart
+const _origConfirmDelete=confirmDelete;
+
+function deleteAllCartItems(){
+  if(!cartItems.length){showToast(t('cart_empty'),true);return;}
+  document.getElementById('cartPoInput').value='';
+  document.getElementById('cartPoModalOverlay').classList.add('open');
+  document.getElementById('cartPoInput').focus();
+}
+
+async function confirmDeleteCart(){
+  const po=document.getElementById('cartPoInput').value.trim();
+  if(!po){showToast('PO # '+t('required'),true);document.getElementById('cartPoInput').focus();return;}
+  document.getElementById('cartPoModalOverlay').classList.remove('open');
+  let errors=0;
+  for(const item of cartItems){
+    const res=await fetch(`/api/parts/${item.partId}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({purchaseOrder:po,quantity:item.cartQty||1})});
+    if(!res.ok) errors++;
+  }
+  await loadCart();await loadBrands();loadParts();loadOverview();
+  if(errors) showToast(`Done with ${errors} error(s).`,true);
+  else showToast(`${t('remove_from_inv')} (PO: ${po}) ✓`);
+}
+
+function printCart(){
+  if(!cartItems.length){showToast(t('cart_empty'),true);return;}
+  const rows=cartItems.map((p,i)=>`<tr>
+    <td>${i+1}</td><td>${esc2(p.brandName)}</td><td>${esc2(p.model)||'—'}</td>
+    <td>${esc2(p.partName)||'—'}</td><td>${esc2(p.groupName)||'—'}</td>
+    <td>${esc2(p.partNumber||'')}</td><td>${p.cartQty||1}</td><td>${esc2(p.place)}</td>
+  </tr>`).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>${lang==='fr'?'Panier':'Cart'} — Fixauto Decarie</title>
+  <style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}
+  h2{color:#0a1f5c;margin-bottom:4px}.meta{font-size:11px;color:#888;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse}th{background:#0d2d7a;color:white;padding:7px 10px;text-align:left;font-size:11px}
+  td{padding:6px 10px;border-bottom:1px solid #ddd}tr:nth-child(even){background:#f5f7ff}
+  .sig{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+  .sig-box{border-top:1px solid #555;padding-top:6px;font-size:11px;color:#555}
+  .ft{margin-top:16px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
+  </style></head><body>
+  <h2>🔧 Fixauto Decarie — ${lang==='fr'?'Liste du panier':'Parts Cart'}</h2>
+  <div class="meta">${lang==='fr'?'Imprimé par':'Printed by'}: <strong>${currentUser?.username||''}</strong> &nbsp;|&nbsp; ${new Date().toLocaleString()} &nbsp;|&nbsp; ${cartItems.length} ${lang==='fr'?'pièce(s)':'part(s)'}</div>
+  <table><thead><tr>
+    <th>#</th><th>${lang==='fr'?'Marque':'Brand'}</th><th>${lang==='fr'?'Modèle':'Model'}</th>
+    <th>${lang==='fr'?'Nom de pièce':'Part Name'}</th><th>${lang==='fr'?'Groupe':'Group'}</th>
+    <th>${lang==='fr'?'Pièce #':'Part #'}</th><th>${lang==='fr'?'Qté':'Qty'}</th>
+    <th>${lang==='fr'?'Emplacement':'Location'}</th>
+  </tr></thead><tbody>${rows}</tbody></table>
+  <div class="sig">
+    <div class="sig-box">${lang==='fr'?'Préparé par':'Prepared by'}: ___________________________</div>
+    <div class="sig-box">${lang==='fr'?'Bon de commande #':'PO #'}: ___________________________</div>
+  </div>
+  <div class="ft">Fixauto Decarie — ${new Date().toLocaleDateString()}</div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  win.document.close();
+}
+
+// ── EXPORT ────────────────────────────────────────────────────
+function exportCSV(){window.location.href='/api/export/csv';showToast('Downloading...');}
+function exportPDF(){
+  const rows=[...document.querySelectorAll('#tableBody tr')].map(tr=>{const tds=[...tr.querySelectorAll('td')].slice(1);return `<tr>${tds.map(td=>`<td>${td.innerText.trim()}</td>`).join('')}</tr>`;}).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Fixauto Decarie Inventory</title>
+  <style>body{font-family:Arial,sans-serif;font-size:11px}h2{color:#0a1f5c}table{width:100%;border-collapse:collapse}
+  th{background:#0d2d7a;color:white;padding:5px 8px;text-align:left}td{padding:4px 8px;border-bottom:1px solid #ddd}
+  tr:nth-child(even){background:#f5f7ff}.ft{margin-top:10px;font-size:10px;color:#aaa}</style></head><body>
+  <h2>🔧 Fixauto Decarie Inventory</h2>
+  <p style="font-size:10px;color:#888;margin-bottom:8px">${new Date().toLocaleString()} — ${currentUser?.username||''}</p>
+  <table><thead><tr><th>#</th><th>${t('part_name')}</th><th>${t('brand')}</th><th>${t('model')}</th><th>${t('group')}</th><th>${t('part_number')}</th><th>${t('qty')}</th><th>${t('location')}</th><th>${t('status')}</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div class="ft">Fixauto Decarie — ${new Date().toLocaleDateString()}</div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  win.document.close();
+}
+
+// ── HISTORY ──────────────────────────────────────────────────
+async function loadHistory(){
+  const data=await (await fetch('/api/history')).json();
+  const tbody=document.getElementById('histBody');
+  if(!data.length){tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:30px;color:#aaa">${t('no_history')}</td></tr>`;return;}
+  tbody.innerHTML=data.map(h=>{
+    const a=h.action;
+    const cls=a==='Added'||a==='Added Qty'?'hb-Added':a==='Edited'?'hb-Edited':a==='Deleted'?'hb-Deleted':(a.includes('Split')||a.includes('Reserve'))?'hb-Split':'hb-other';
+    return `<tr><td style="white-space:nowrap;font-size:.78rem;color:#888">${new Date(h.changedAt+'Z').toLocaleString()}</td><td><span class="user-chip">${esc2(h.username||'?')}</span></td><td><span class="hbadge ${cls}">${esc2(a)}</span></td><td style="color:#444;font-size:.82rem">${esc2(h.detail)}</td></tr>`;
+  }).join('');
+}
+
+// ── DELETED ───────────────────────────────────────────────────
+async function loadDeleted(){
+  const data=await (await fetch('/api/deleted')).json();
+  const tbody=document.getElementById('deletedBody');
+  if(!data.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:30px;color:#aaa">${t('no_deleted')}</td></tr>`;return;}
+  tbody.innerHTML=data.map(d=>`<tr>
+    <td style="font-size:.78rem;color:#888;white-space:nowrap">${new Date(d.deletedAt+'Z').toLocaleString()}</td>
+    <td><span class="user-chip">${esc2(d.deletedBy||'?')}</span></td>
+    <td><span class="del-po">${esc2(d.purchaseOrder)}</span></td>
+    <td><strong>${esc2(d.partName)||'—'}</strong></td>
+    <td>${esc2(d.brandName)} ${esc2(d.model)}</td>
+    <td>${esc2(d.partNumber||'')}</td>
+    <td>${d.groupName?`<span class="group-badge">${esc2(d.groupName)}</span>`:'—'}</td>
+    <td><span class="qty-badge qty-ok">${d.quantity}</span></td>
+    <td>${esc2(d.place)}</td>
+  </tr>`).join('');
+}
+
+// ── USERS ─────────────────────────────────────────────────────
+async function loadUsers(){
+  const data=await (await fetch('/api/users')).json();
+  document.getElementById('usersGrid').innerHTML=data.map(u=>`
+    <div class="user-card">
+      <div class="user-info"><div class="uname">👤 ${esc2(u.username)}</div><div class="urole">${u.isAdmin?'<span class="admin-badge">Admin</span>':'Staff'} · ${u.createdAt.slice(0,10)}</div></div>
+      <div class="user-actions">
+        <button class="act-btn act-edit" onclick="openPwModal(${u.id})">🔑</button>
+        ${!u.isAdmin?`<button class="act-btn act-del" onclick="deleteUser(${u.id},'${esc(u.username)}')">🗑️</button>`:''}
+      </div>
+    </div>`).join('');
+}
+function openUserModal(){document.getElementById('uUsername').value='';document.getElementById('uPassword').value='';document.getElementById('uIsAdmin').checked=false;document.getElementById('userModalOverlay').classList.add('open');document.getElementById('uUsername').focus();}
+function closeUserModal(){document.getElementById('userModalOverlay').classList.remove('open');}
+async function saveUser(){
+  const u=document.getElementById('uUsername').value.trim(),p=document.getElementById('uPassword').value;
+  if(!u||!p){showToast(t('username')+' & '+t('password')+' required',true);return;}
+  const res=await fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p,isAdmin:document.getElementById('uIsAdmin').checked})});
+  if(res.ok){closeUserModal();loadUsers();showToast(t('create_user')+'!');}
+  else showToast('Username already exists.',true);
+}
+async function deleteUser(id,name){if(!confirm(`Delete user "${name}"?`))return;if((await fetch(`/api/users/${id}`,{method:'DELETE'})).ok){loadUsers();showToast('User deleted.');}}
+function openPwModal(id){pwTargetId=id;document.getElementById('pwInput').value='';document.getElementById('pwModalOverlay').classList.add('open');document.getElementById('pwInput').focus();}
+async function savePassword(){
+  const p=document.getElementById('pwInput').value;if(!p){showToast(t('new_password')+' required',true);return;}
+  const res=await fetch(`/api/users/${pwTargetId}/password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p})});
+  if(res.ok){document.getElementById('pwModalOverlay').classList.remove('open');showToast(t('update_password')+'!');}
+}
+
+function showToast(msg,isErr=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(isErr?' err':'');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// Close modals on overlay click
+['modalOverlay','userModalOverlay','pwModalOverlay','splitModalOverlay','groupModalOverlay',
+ 'poModalOverlay','cartPoModalOverlay'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('click',e=>{if(e.target===e.currentTarget)e.target.classList.remove('open');});
+});
+document.getElementById('lightbox').addEventListener('click',closeLightbox);
+  document.getElementById('cartQtyInput').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAddToCart();});
+
+
+// Init language from storage
+const savedLang=localStorage.getItem('fdLang')||'en';
+setLang(savedLang);
+</script>
+</body>
+</html>
